@@ -1,11 +1,22 @@
-import { useTransactionService } from "../services/transaction.service.js";
+import { useTransactionRepo } from "../repositories/transaction.repository.js";
 
 export function useTransactionController() {
-  const service = useTransactionService();
+  const {
+    getAllByUserId: _getAllByUserId,
+    getById: _getById,
+    add: _add,
+    updateById: _updateById,
+    deleteById: _deleteById,
+  } = useTransactionRepo();
 
-  async function list(req, res, next) {
+  async function getAllByUserId(req, res, next) {
     try {
-      res.json(await service.list(req.dbUser._id, req.query));
+      const transactions = await _getAllByUserId({
+        ...req.query,
+        userId: req.dbUser._id,
+      });
+
+      res.json(transactions);
     } catch (error) {
       next(error);
     }
@@ -13,7 +24,15 @@ export function useTransactionController() {
 
   async function getById(req, res, next) {
     try {
-      res.json(await service.getOne(req.params.id, req.dbUser._id));
+      const transaction = await _getById(req.params.id, req.dbUser._id);
+
+      if (!transaction) {
+        return res.status(404).json({
+          message: "Transaction not found.",
+        });
+      }
+
+      res.json(transaction);
     } catch (error) {
       next(error);
     }
@@ -21,8 +40,15 @@ export function useTransactionController() {
 
   async function add(req, res, next) {
     try {
-      const tx = await service.create(req.dbUser._id, req.body);
-      res.status(201).json(tx);
+      const transaction = await _add({
+        ...req.body,
+        userId: req.dbUser._id,
+      });
+
+      res.status(201).json({
+        message: "Transaction created successfully.",
+        data: transaction,
+      });
     } catch (error) {
       next(error);
     }
@@ -30,7 +56,22 @@ export function useTransactionController() {
 
   async function updateById(req, res, next) {
     try {
-      res.json(await service.update(req.params.id, req.dbUser._id, req.body));
+      const transaction = await _updateById(
+        req.params.id,
+        req.dbUser._id,
+        req.body,
+      );
+
+      if (!transaction) {
+        return res.status(404).json({
+          message: "Transaction not found.",
+        });
+      }
+
+      res.json({
+        message: "Transaction updated successfully.",
+        data: transaction,
+      });
     } catch (error) {
       next(error);
     }
@@ -38,12 +79,27 @@ export function useTransactionController() {
 
   async function deleteById(req, res, next) {
     try {
-      await service.remove(req.params.id, req.dbUser._id);
-      res.status(204).send();
+      const transaction = await _deleteById(req.params.id, req.dbUser._id);
+
+      if (!transaction) {
+        return res.status(404).json({
+          message: "Transaction not found.",
+        });
+      }
+
+      res.json({
+        message: "Transaction deleted successfully.",
+      });
     } catch (error) {
       next(error);
     }
   }
 
-  return { list, getById, add, updateById, deleteById };
+  return {
+    getAllByUserId,
+    getById,
+    add,
+    updateById,
+    deleteById,
+  };
 }

@@ -11,7 +11,7 @@ export function useTransactionRepo() {
     }
   }
 
-  async function getByUserId({
+  async function getAllByUserId({
     page = 1,
     limit = 10,
     userId = "",
@@ -62,8 +62,7 @@ export function useTransactionRepo() {
 
   async function add(value) {
     try {
-      const doc = await Transaction.create(value);
-      return { message: "Successfully created transaction.", value: doc };
+      return await Transaction.create(value);
     } catch (error) {
       throw new Error("Failed to add transaction: " + error.message);
     }
@@ -83,16 +82,20 @@ export function useTransactionRepo() {
 
   async function deleteById(id, userId) {
     try {
-      const doc = await Transaction.findOneAndDelete({ _id: id, userId });
-      return { deletedCount: doc ? 1 : 0 };
+      return await Transaction.findOneAndDelete({
+        _id: id,
+        userId,
+      });
     } catch (error) {
-      if (error.name === "CastError") throw new Error("Invalid ID format");
+      if (error.name === "CastError") {
+        throw new Error("Invalid ID format");
+      }
+
       throw new Error("Failed to delete transaction: " + error.message);
     }
   }
 
-  // Used by user.service.js when an account is deleted, to cascade-clean
-  // owned data.
+  // Used by user.service.js when an account is deleted
   async function deleteAllByUserId(userId) {
     try {
       return await Transaction.deleteMany({ userId });
@@ -103,7 +106,7 @@ export function useTransactionRepo() {
 
   return {
     createTransactionIndexes,
-    getByUserId,
+    getAllByUserId,
     getById,
     add,
     updateById,
