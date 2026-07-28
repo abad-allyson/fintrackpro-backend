@@ -9,7 +9,7 @@ export function useBudgetController() {
     deleteById: _deleteById,
   } = useBudgetRepo();
 
-  async function getAllbyUserId(req, res, next) {
+  async function getAllByUserId(req, res, next) {
     try {
       const budgets = await _getAllByUserId(req.dbUser._id);
       res.json(budgets);
@@ -88,7 +88,7 @@ export function useBudgetController() {
   }
 
   return {
-    getAllbyUserId,
+    getAllByUserId,
     getById,
     add,
     updateById,
