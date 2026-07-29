@@ -100,7 +100,7 @@ export function useTransactionRepo() {
     try {
       return await Transaction.create(value);
     } catch (error) {
-      throw new Error("Failed to add transaction: " + error.message);
+      throw error;
     }
   }
 
@@ -112,7 +112,7 @@ export function useTransactionRepo() {
       });
     } catch (error) {
       if (error.name === "CastError") throw new Error("Invalid ID format");
-      throw new Error("Failed to update transaction: " + error.message);
+      throw error;
     }
   }
 
