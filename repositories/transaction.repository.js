@@ -15,24 +15,51 @@ export function useTransactionRepo() {
     page = 1,
     limit = 10,
     userId = "",
+    search = "",
     category = "",
     type = "",
     month = "",
     year = "",
   } = {}) {
-    page = page > 0 ? page - 1 : page;
-    limit = parseInt(limit);
+    page = Math.max(parseInt(page, 10) - 1, 0);
+    limit = parseInt(limit, 10) || 10;
 
     const query = { userId };
-    if (category) query.category = category;
-    if (type) query.type = type;
 
-    if (year) {
-      const y = parseInt(year);
-      const m = month ? parseInt(month) - 1 : null;
-      const start = m !== null ? new Date(y, m, 1) : new Date(y, 0, 1);
-      const end = m !== null ? new Date(y, m + 1, 1) : new Date(y + 1, 0, 1);
-      query.date = { $gte: start, $lt: end };
+    if (search) {
+      query.description = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (type) {
+      query.type = type;
+    }
+
+    const currentYear = new Date().getFullYear();
+    const selectedYear = year ? parseInt(year, 10) : currentYear;
+    const selectedMonth = month ? parseInt(month, 10) - 1 : null;
+
+    if (month || year) {
+      const start =
+        selectedMonth !== null
+          ? new Date(selectedYear, selectedMonth, 1)
+          : new Date(selectedYear, 0, 1);
+
+      const end =
+        selectedMonth !== null
+          ? new Date(selectedYear, selectedMonth + 1, 1)
+          : new Date(selectedYear + 1, 0, 1);
+
+      query.date = {
+        $gte: start,
+        $lt: end,
+      };
     }
 
     try {
@@ -41,13 +68,22 @@ export function useTransactionRepo() {
           .sort({ date: -1 })
           .skip(page * limit)
           .limit(limit),
+
         Transaction.countDocuments(query),
       ]);
 
-      return paginate({ items, page, limit, length });
+      return paginate({
+        items,
+        page,
+        limit,
+        length,
+      });
     } catch (error) {
-      if (error.name === "CastError") throw new Error("Invalid user ID.");
-      throw new Error("Failed to fetch transactions: " + error.message);
+      if (error.name === "CastError") {
+        throw new Error("Invalid user ID.");
+      }
+
+      throw new Error(`Failed to fetch transactions: ${error.message}`);
     }
   }
 
