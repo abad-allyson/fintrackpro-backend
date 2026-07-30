@@ -5,11 +5,11 @@ export function useBudgetController() {
   const {
     getAllByUserId: _getAllByUserId,
     getById: _getById,
-    updateById: _updateById,
+
     deleteById: _deleteById,
   } = useBudgetRepo();
 
-  const { add: _add } = useBudgetService();
+  const { add: _add, updateById: _updateById } = useBudgetService();
 
   async function getAllByUserId(req, res, next) {
     try {

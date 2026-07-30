@@ -129,6 +129,16 @@ export function useBudgetRepo() {
     });
   }
 
+  async function getDuplicate(userId, category, month, year, excludeId) {
+    return Budget.findOne({
+      userId,
+      category,
+      month,
+      year,
+      _id: { $ne: excludeId },
+    });
+  }
+
   return {
     createBudgetIndexes,
     getAllByUserId,
@@ -137,5 +147,6 @@ export function useBudgetRepo() {
     updateById,
     deleteById,
     getByCategoryAndMonthYear,
+    getDuplicate,
   };
 }
