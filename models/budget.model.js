@@ -8,10 +8,26 @@ const budgetSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    category: { type: String, required: true, trim: true, maxlength: 100 },
-    monthlyLimit: { type: Number, required: true }, // cents
+    category: {
+      type: String,
+      required: [true, "Category is required."],
+      trim: true,
+      maxlength: 100,
+    },
+    monthlyLimit: {
+      type: Number,
+      required: [true, "Monthly Limit is required."],
+    },
+    month: {
+      type: Number,
+      required: [true, "Month is required."],
+    },
+    year: {
+      type: Number,
+      required: [true, "Year is required."],
+    },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // One budget per category per user.
