@@ -1,17 +1,22 @@
 import { useBudgetRepo } from "../repositories/budget.repository.js";
+import { useBudgetService } from "../services/budget.service.js";
 
 export function useBudgetController() {
   const {
     getAllByUserId: _getAllByUserId,
     getById: _getById,
-    add: _add,
     updateById: _updateById,
     deleteById: _deleteById,
   } = useBudgetRepo();
 
+  const { add: _add } = useBudgetService();
+
   async function getAllByUserId(req, res, next) {
     try {
-      const budgets = await _getAllByUserId(req.dbUser._id);
+      const budgets = await _getAllByUserId({
+        ...req.query,
+        userId: req.dbUser._id,
+      });
       res.json(budgets);
     } catch (error) {
       next(error);

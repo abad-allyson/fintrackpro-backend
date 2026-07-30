@@ -1,4 +1,5 @@
 import Budget from "../models/budget.model.js";
+import { paginate } from "../utils/paginate.util.js";
 
 export function useBudgetRepo() {
   async function createBudgetIndexes() {
@@ -10,9 +11,50 @@ export function useBudgetRepo() {
     }
   }
 
-  async function getAllByUserId(userId) {
+  async function getAllByUserId({
+    userId = "",
+    search = "",
+    month = "",
+    year = "",
+    page = 1,
+    limit = 10,
+  } = {}) {
+    page = Math.max(parseInt(page, 10) - 1, 0);
+    limit = parseInt(limit, 10) || 10;
+
+    const query = { userId };
+
+    if (search) {
+      query.category = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    if (month) {
+      query.month = parseInt(month, 10);
+    }
+
+    if (year) {
+      query.year = parseInt(year, 10);
+    }
+
     try {
-      return await Budget.find({ userId });
+      const [items, length] = await Promise.all([
+        Budget.find(query)
+          .sort({ category: 1 })
+          .skip(page * limit)
+          .limit(limit),
+
+        Budget.countDocuments(query),
+      ]);
+
+      return paginate({
+        items,
+        page,
+        limit,
+        length,
+      });
     } catch (error) {
       throw new Error("Failed to fetch budgets: " + error.message);
     }
@@ -78,6 +120,15 @@ export function useBudgetRepo() {
     }
   }
 
+  async function getByCategoryAndMonthYear(userId, category, month, year) {
+    return Budget.findOne({
+      userId,
+      category,
+      month,
+      year,
+    });
+  }
+
   return {
     createBudgetIndexes,
     getAllByUserId,
@@ -85,5 +136,6 @@ export function useBudgetRepo() {
     add,
     updateById,
     deleteById,
+    getByCategoryAndMonthYear,
   };
 }
