@@ -37,7 +37,14 @@ export function useUserService() {
   }
 
   async function getMe(dbUser) {
-    return dbUser;
+    return {
+      id: dbUser._id,
+      firstName: dbUser.firstName,
+      lastName: dbUser.lastName,
+      email: dbUser.email,
+      plan: dbUser.plan,
+      status: dbUser.status,
+    };
   }
 
   async function softDeleteUser(userId) {

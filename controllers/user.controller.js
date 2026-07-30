@@ -5,7 +5,9 @@ export function useUserController() {
 
   async function getMe(req, res, next) {
     try {
-      res.json(await _getMe(req.dbUser));
+      res.json({
+        data: await _getMe(req.dbUser),
+      });
     } catch (error) {
       next(error);
     }
