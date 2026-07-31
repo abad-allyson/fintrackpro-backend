@@ -2,16 +2,13 @@ import { useBudgetRepo } from "../repositories/budget.repository.js";
 import { useBudgetService } from "../services/budget.service.js";
 
 export function useBudgetController() {
-  const {
-    getAllByUserId: _getAllByUserId,
-    getById: _getById,
-    deleteById: _deleteById,
-  } = useBudgetRepo();
+  const { getById: _getById, deleteById: _deleteById } = useBudgetRepo();
 
   const {
     add: _add,
     updateById: _updateById,
     getSummary: _getSummary,
+    getAllByUserId: _getAllByUserId,
   } = useBudgetService();
 
   async function getAllByUserId(req, res, next) {
