@@ -21,6 +21,7 @@ import useWebhookRoute from "./routes/webhook.route.js";
 import useUserRoute from "./routes/user.route.js";
 import useTransactionRoute from "./routes/transaction.route.js";
 import useBudgetRoute from "./routes/budget.route.js";
+import useDashboardRoute from "./routes/dashboard.route.js";
 
 import setup from "./setup.js";
 import { errorHandler } from "./middleware/error.middleware.js";
@@ -60,6 +61,7 @@ connectToDB()
     app.use("/api/users", useUserRoute());
     app.use("/api/transactions", useTransactionRoute());
     app.use("/api/budgets", useBudgetRoute());
+    app.use("/api/dashboard", useDashboardRoute());
 
     // 404 for anything unmatched
     app.use((req, res) => res.status(404).json({ error: "Not found!!" }));

@@ -131,12 +131,39 @@ export function useTransactionRepo() {
     }
   }
 
-  // Used by user.service.js when an account is deleted
   async function deleteAllByUserId(userId) {
     try {
       return await Transaction.deleteMany({ userId });
     } catch (error) {
       throw new Error("Failed to delete transactions: " + error.message);
+    }
+  }
+
+  async function getMonthlySummary(userId, start, end) {
+    try {
+      const result = await Transaction.aggregate([
+        {
+          $match: {
+            userId,
+            date: {
+              $gte: start,
+              $lt: end,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$type",
+            total: {
+              $sum: "$amount",
+            },
+          },
+        },
+      ]);
+
+      return result;
+    } catch (error) {
+      throw new Error("Failed to get monthly summary: " + error.message);
     }
   }
 
@@ -148,5 +175,6 @@ export function useTransactionRepo() {
     updateById,
     deleteById,
     deleteAllByUserId,
+    getMonthlySummary,
   };
 }
