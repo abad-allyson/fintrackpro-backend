@@ -5,10 +5,11 @@ import { requireAuth } from "../middleware/auth.middleware.js";
 const router = express.Router();
 
 export default function useBudgetRoute() {
-  const { getAllByUserId, getById, add, updateById, deleteById } =
+  const { getAllByUserId, getById, add, updateById, deleteById, getSummary } =
     useBudgetController();
 
   router.get("/", requireAuth, getAllByUserId);
+  router.get("/summary", requireAuth, getSummary);
   router.get("/:id", requireAuth, getById);
   router.post("/", requireAuth, add);
   router.patch("/:id", requireAuth, updateById);

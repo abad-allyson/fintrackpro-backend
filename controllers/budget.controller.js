@@ -5,11 +5,14 @@ export function useBudgetController() {
   const {
     getAllByUserId: _getAllByUserId,
     getById: _getById,
-
     deleteById: _deleteById,
   } = useBudgetRepo();
 
-  const { add: _add, updateById: _updateById } = useBudgetService();
+  const {
+    add: _add,
+    updateById: _updateById,
+    getSummary: _getSummary,
+  } = useBudgetService();
 
   async function getAllByUserId(req, res, next) {
     try {
@@ -92,11 +95,22 @@ export function useBudgetController() {
     }
   }
 
+  async function getSummary(req, res, next) {
+    try {
+      const summary = await _getSummary(req.dbUser._id);
+
+      res.json(summary);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   return {
     getAllByUserId,
     getById,
     add,
     updateById,
     deleteById,
+    getSummary,
   };
 }

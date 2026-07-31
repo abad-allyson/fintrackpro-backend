@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Budget from "../models/budget.model.js";
 import { paginate } from "../utils/paginate.util.js";
 
@@ -63,22 +64,24 @@ export function useBudgetRepo() {
 
   async function getById(id, userId) {
     try {
-      return await Budget.findOne({
+      if (!id || !mongoose.isValidObjectId(id)) {
+        return null;
+      }
+
+      const result = await Budget.findOne({
         _id: id,
         userId,
       });
+      return result;
     } catch (error) {
-      if (error.name === "CastError") {
-        throw new Error("Invalid ID format");
-      }
-
       throw new Error("Failed to fetch budget: " + error.message);
     }
   }
 
   async function add(value) {
     try {
-      return await Budget.create(value);
+      const result = await Budget.create(value);
+      return result;
     } catch (error) {
       throw error;
     }
@@ -86,7 +89,7 @@ export function useBudgetRepo() {
 
   async function updateById(id, userId, value) {
     try {
-      return await Budget.findOneAndUpdate(
+      const result = await Budget.findOneAndUpdate(
         {
           _id: id,
           userId,
@@ -97,47 +100,69 @@ export function useBudgetRepo() {
           runValidators: true,
         },
       );
-    } catch (error) {
-      if (error.name === "CastError") {
-        throw new Error("Invalid ID format");
-      }
 
-      throw new Error("Failed to update budget: " + error.message);
+      return result;
+    } catch (error) {
+      throw error;
     }
   }
 
   async function deleteById(id, userId) {
     try {
-      return await Budget.findOneAndDelete({
+      const result = await Budget.findOneAndDelete({
         _id: id,
         userId,
       });
+      return result;
     } catch (error) {
-      if (error.name === "CastError") {
-        throw new Error("Invalid ID format");
-      }
-
       throw new Error("Failed to delete budget: " + error.message);
     }
   }
 
   async function getByCategoryAndMonthYear(userId, category, month, year) {
-    return Budget.findOne({
-      userId,
-      category,
-      month,
-      year,
-    });
+    try {
+      const result = Budget.findOne({
+        userId,
+        category,
+        month,
+        year,
+      });
+      return result;
+    } catch (error) {
+      throw new Error("Failed to get categories and date: " + error.message);
+    }
   }
 
   async function getDuplicate(userId, category, month, year, excludeId) {
-    return Budget.findOne({
-      userId,
-      category,
-      month,
-      year,
-      _id: { $ne: excludeId },
-    });
+    try {
+      const result = Budget.findOne({
+        userId,
+        category,
+        month,
+        year,
+        _id: { $ne: excludeId },
+      });
+
+      return result;
+    } catch (error) {
+      throw new Error("Failed to check duplicates: " + error.message);
+    }
+  }
+
+  async function getMonthlyBudgetPerCategory(userId, month, year) {
+    try {
+      const result = await Budget.find({
+        userId,
+        month,
+        year,
+      }).sort({
+        category: 1,
+      });
+
+      return result;
+    } catch (error) {
+      throw new Error("Failed to get monthly budgets: " + error.message);
+    }
   }
 
   return {
@@ -149,5 +174,6 @@ export function useBudgetRepo() {
     deleteById,
     getByCategoryAndMonthYear,
     getDuplicate,
+    getMonthlyBudgetPerCategory,
   };
 }

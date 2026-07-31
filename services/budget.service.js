@@ -1,5 +1,7 @@
 import { useBudgetRepo } from "../repositories/budget.repository.js";
 import { BadRequestError } from "../utils/error.util.js";
+import { getCurrentMonthYear } from "../utils/date.util.js";
+import { useTransactionRepo } from "../repositories/transaction.repository.js";
 
 export function useBudgetService() {
   const {
@@ -8,7 +10,10 @@ export function useBudgetService() {
     getByCategoryAndMonthYear: _getByCategoryAndMonthYear,
     getDuplicate: _getDuplicate,
     updateById: _updateById,
+    getMonthlyBudgetPerCategory,
   } = useBudgetRepo();
+
+  const { getMonthlySpentByCategory } = useTransactionRepo();
 
   async function add(value) {
     const current = new Date();
@@ -61,5 +66,38 @@ export function useBudgetService() {
     return await _updateById(id, userId, updateData);
   }
 
-  return { add, updateById };
+  async function getSummary(userId) {
+    const { month, year } = getCurrentMonthYear();
+
+    const [budgets, expenses] = await Promise.all([
+      getMonthlyBudgetPerCategory(userId, month, year),
+      getMonthlySpentByCategory(userId, month, year),
+    ]);
+
+    // Total Budget
+    const totalBudget = budgets.reduce(
+      (sum, budget) => sum + budget.monthlyLimit,
+      0,
+    );
+
+    const expenseMap = new Map(
+      expenses.map((expense) => [expense.category, expense.spent]),
+    );
+
+    const totalSpent = budgets.reduce((sum, budget) => {
+      return sum + (expenseMap.get(budget.category) || 0);
+    }, 0);
+
+    const remainingBudget = totalBudget - totalSpent;
+
+    const result = {
+      totalBudget,
+      totalSpent,
+      remainingBudget,
+    };
+
+    return result;
+  }
+
+  return { add, updateById, getSummary };
 }

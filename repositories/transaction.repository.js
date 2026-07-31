@@ -89,7 +89,11 @@ export function useTransactionRepo() {
 
   async function getById(id, userId) {
     try {
-      return await Transaction.findOne({ _id: id, userId });
+      if (!id || !mongoose.isValidObjectId(id)) {
+        return null;
+      }
+      const result = await Transaction.findOne({ _id: id, userId });
+      return result;
     } catch (error) {
       if (error.name === "CastError") throw new Error("Invalid Id");
       throw new Error("Failed to fetch transaction: " + error.message);
@@ -98,7 +102,8 @@ export function useTransactionRepo() {
 
   async function add(value) {
     try {
-      return await Transaction.create(value);
+      const result = await Transaction.create(value);
+      return result;
     } catch (error) {
       throw error;
     }
@@ -106,10 +111,16 @@ export function useTransactionRepo() {
 
   async function updateById(id, userId, value) {
     try {
-      return await Transaction.findOneAndUpdate({ _id: id, userId }, value, {
-        new: true,
-        runValidators: true,
-      });
+      const result = await Transaction.findOneAndUpdate(
+        { _id: id, userId },
+        value,
+        {
+          new: true,
+          runValidators: true,
+        },
+      );
+
+      return result;
     } catch (error) {
       if (error.name === "CastError") throw new Error("Invalid ID format");
       throw error;
@@ -118,10 +129,11 @@ export function useTransactionRepo() {
 
   async function deleteById(id, userId) {
     try {
-      return await Transaction.findOneAndDelete({
+      const result = await Transaction.findOneAndDelete({
         _id: id,
         userId,
       });
+      return result;
     } catch (error) {
       if (error.name === "CastError") {
         throw new Error("Invalid ID format");
@@ -133,7 +145,8 @@ export function useTransactionRepo() {
 
   async function deleteAllByUserId(userId) {
     try {
-      return await Transaction.deleteMany({ userId });
+      const result = await Transaction.deleteMany({ userId });
+      return result;
     } catch (error) {
       throw new Error("Failed to delete transactions: " + error.message);
     }
@@ -167,6 +180,52 @@ export function useTransactionRepo() {
     }
   }
 
+  async function getMonthlySpentByCategory(userId, month, year) {
+    try {
+      const startDate = new Date(year, month - 1, 1);
+      const endDate = new Date(year, month, 1);
+
+      const result = await Transaction.aggregate([
+        {
+          $match: {
+            userId,
+            type: "expense",
+            date: {
+              $gte: startDate,
+              $lt: endDate,
+            },
+          },
+        },
+        {
+          $group: {
+            _id: "$category",
+            spent: {
+              $sum: "$amount",
+            },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            category: "$_id",
+            spent: 1,
+          },
+        },
+        {
+          $sort: {
+            category: 1,
+          },
+        },
+      ]);
+
+      return result;
+    } catch (error) {
+      throw new Error(
+        "Failed to compute monthly expenses by category: " + error.message,
+      );
+    }
+  }
+
   return {
     createTransactionIndexes,
     getAllByUserId,
@@ -176,5 +235,6 @@ export function useTransactionRepo() {
     deleteById,
     deleteAllByUserId,
     getMonthlySummary,
+    getMonthlySpentByCategory,
   };
 }

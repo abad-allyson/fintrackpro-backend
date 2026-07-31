@@ -12,7 +12,8 @@ export function useUserRepo() {
 
   async function getByClerkId(clerkId) {
     try {
-      return await User.findOne({ clerkId });
+      const result = await User.findOne({ clerkId });
+      return result;
     } catch (error) {
       throw new Error("Failed to get user by clerkId: " + error.message);
     }
@@ -20,7 +21,11 @@ export function useUserRepo() {
 
   async function getById(id) {
     try {
-      return await User.findById(id);
+      if (!id || !mongoose.isValidObjectId(id)) {
+        return null;
+      }
+      const result = await User.findById(id);
+      return result;
     } catch (error) {
       if (error.name === "CastError") throw new Error("Invalid Id");
       throw new Error("Failed to get by id: " + error.message);
@@ -29,7 +34,8 @@ export function useUserRepo() {
 
   async function add(value) {
     try {
-      return await User.create(value);
+      const result = await User.create(value);
+      return result;
     } catch (error) {
       throw new Error("Failed to add user: " + error.message);
     }
@@ -37,23 +43,30 @@ export function useUserRepo() {
 
   async function updateByClerkId(clerkId, value) {
     try {
-      return await User.findOneAndUpdate({ clerkId }, value, { new: true });
+      const result = await User.findOneAndUpdate({ clerkId }, value, {
+        new: true,
+      });
+      return result;
     } catch (error) {
       throw new Error("Failed to update user: " + error.message);
     }
   }
 
   async function softDeleteByClerkId(clerkId) {
-    return User.findOneAndUpdate(
-      { clerkId },
-      {
-        status: "deleted",
-        deletedAt: new Date(),
-      },
-      {
-        new: true,
-      },
-    );
+    try {
+      const result = User.findOneAndUpdate(
+        { clerkId },
+        {
+          status: "deleted",
+          deletedAt: new Date(),
+        },
+        {
+          new: true,
+        },
+      );
+    } catch (error) {
+      throw new Error("Failed to delete." + error.message);
+    }
   }
 
   return {
