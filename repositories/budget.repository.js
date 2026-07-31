@@ -16,6 +16,7 @@ export function useBudgetRepo() {
     search = "",
     month = "",
     year = "",
+    category = "",
     page = 1,
     limit = 10,
   } = {}) {
@@ -31,12 +32,12 @@ export function useBudgetRepo() {
       };
     }
 
-    if (month) {
-      query.month = parseInt(month, 10);
+    if (category) {
+      query.category = category;
     }
 
-    if (year) {
-      query.year = parseInt(year, 10);
+    if (month) {
+      query.month = parseInt(month, 10);
     }
 
     try {
@@ -79,7 +80,7 @@ export function useBudgetRepo() {
     try {
       return await Budget.create(value);
     } catch (error) {
-      throw new Error("Failed to create budget: " + error.message);
+      throw error;
     }
   }
 
