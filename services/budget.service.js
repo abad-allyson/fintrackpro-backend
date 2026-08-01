@@ -6,6 +6,7 @@ import { useTransactionRepo } from "../repositories/transaction.repository.js";
 export function useBudgetService() {
   const {
     add: _add,
+    getAllByUserId: _getAllByUserId,
     getById: _getById,
     getByCategoryAndMonthYear: _getByCategoryAndMonthYear,
     getDuplicate: _getDuplicate,
@@ -99,5 +100,40 @@ export function useBudgetService() {
     return result;
   }
 
-  return { add, updateById, getSummary };
+  async function getAllByUserId(query) {
+    try {
+      const result = await _getAllByUserId(query);
+
+      const expenses = await getMonthlySpentByCategory(
+        query.userId,
+        query.month,
+        query.year,
+      );
+
+      const expenseMap = new Map(
+        expenses.map((expense) => [expense.category, expense.spent]),
+      );
+
+      const items = result.items.map((budget) => {
+        const spent = expenseMap.get(budget.category) || 0;
+
+        return {
+          ...budget.toObject(),
+          spent,
+          remaining: budget.monthlyLimit - spent,
+        };
+      });
+
+      const response = {
+        ...result,
+        items,
+      };
+
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  return { add, updateById, getSummary, getAllByUserId };
 }
