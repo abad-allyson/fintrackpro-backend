@@ -22,11 +22,13 @@ export function useDashboardService() {
       }
     }
 
-    return {
+    const result = {
       totalIncome,
       totalExpense,
       netIncome: totalIncome - totalExpense,
     };
+
+    return result;
   }
 
   return { getMonthlySummary };
