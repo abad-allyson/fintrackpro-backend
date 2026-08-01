@@ -24,6 +24,7 @@ export function useUserRepo() {
       if (!id || !mongoose.isValidObjectId(id)) {
         return null;
       }
+
       const result = await User.findById(id);
       return result;
     } catch (error) {

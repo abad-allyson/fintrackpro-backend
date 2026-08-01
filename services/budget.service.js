@@ -67,8 +67,9 @@ export function useBudgetService() {
     return await _updateById(id, userId, updateData);
   }
 
-  async function getSummary(userId) {
-    const { month, year } = getCurrentMonthYear();
+  async function getSummary(userId, query) {
+    const month = query.month ? parseInt(query.month) : undefined;
+    const year = query.year ? parseInt(query.year) : undefined;
 
     const [budgets, expenses] = await Promise.all([
       getMonthlyBudgetPerCategory(userId, month, year),

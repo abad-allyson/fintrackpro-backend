@@ -94,7 +94,7 @@ export function useBudgetController() {
 
   async function getSummary(req, res, next) {
     try {
-      const summary = await _getSummary(req.dbUser._id);
+      const summary = await _getSummary(req.dbUser._id, req.query);
 
       res.json(summary);
     } catch (error) {
